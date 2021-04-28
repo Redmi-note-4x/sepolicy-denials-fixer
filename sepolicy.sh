@@ -20,9 +20,9 @@ for i in $scontext; do
       present_check=$(grep "allow $i $r:$d" sepolicy/vendor/$i.te)
       if [ ! -z "$(echo "$r" | grep prop)" ]; then
         if [ ! -z "$(echo "$permission" | grep read)" ]; then
-          write="getprop($i, $r);"
+          write="get_prop($i, $r);"
 	elif [ ! -z "$(echo "$permission" | grep set)" ]; then
-          write="setprop($i, $r);"
+          write="set_prop($i, $r);"
 	else
           write="allow $i $r:$d { $permission};"
 	fi
@@ -66,6 +66,13 @@ fi
 if [ ! -d sepolicy/vendor ]; then
 mkdir sepolicy/vendor
 fi
+
+for opt in $@; do
+if [ $opt == "--clean" ]; then
+echo "Cleaning old sepolicy"
+rm -rf sepolicy/vendor/*.te
+fi
+done
 
 sepolicy $1
 rm -rf temp.txt
