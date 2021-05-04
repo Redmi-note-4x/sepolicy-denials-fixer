@@ -2,16 +2,21 @@ sepolicy() {
 scontext=$(grep "avc:" $1 | grep "denied" | sed -n -e 's/^.*scontext=//p' | cut -d: -f3 | sort  | uniq)
 for i in $scontext; do
   permission=''
-  rm -rf temp.txt
   tclass=$(grep $i $1 | sed -n -e 's/^.*tclass=//p' | cut -d" " -f1 | sort | uniq)
   for d in $tclass; do
-    de=$(grep $i $1 | grep "$d" | sed -n -e 's/^.*{ //p' | cut -d" " -f1 | sort | uniq)
+    rm -rf temp.txt
+    tcontext=$(grep $i $1 | grep "$d" | sed -n -e 's/^.*tcontext=//p' | cut -d: -f3 | sort | uniq)
+    tcontext="${tcontext// /}"
+    de=$(grep $i $1 | grep "$tcontext" |grep "$d" | sed -n -e 's/^.*{ //p' | cut -d" " -f1 | sort | uniq)
     for c in $de; do
       echo $c >> temp.txt
     done
     permission=$(sort temp.txt | uniq | tr '\n' ' ')
-    tcontext=$(grep $i $1 | grep "$d" | sed -n -e 's/^.*tcontext=//p' | cut -d: -f3 | sort | uniq)
-    tcontext="${tcontext// /}"
+
+    if [ "${permission: -1}" != " " ]; then
+      permission="$permission "
+    fi
+
     for r in $tcontext; do
       if [ ! -f sepolicy/vendor/$i.te ]; then
 	echo "#============= $i ==============" >> sepolicy/vendor/$i.te
