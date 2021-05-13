@@ -45,11 +45,11 @@ for i in $scontext; do
         permission="$permission "
       fi
 
-      if [ ! -f sepolicy/vendor/$i.te ]; then
-	echo "#============= $i ==============" >> sepolicy/vendor/$i.te
+      if [ ! -f $path/$i.te ]; then
+	echo "#============= $i ==============" >> $path/$i.te
       fi
       perm=( $permission  )
-      present_check=$(grep "allow $i $r:$d" sepolicy/vendor/$i.te)
+      present_check=$(grep "allow $i $r:$d" $path/$i.te)
       if [ ! -z "$(echo "$r" | grep prop)" ]; then
         if [ ! -z "$(echo "$permission" | grep read)" ]; then
           write="get_prop($i, $r);"
@@ -64,7 +64,7 @@ for i in $scontext; do
       else
 	  write="allow $i $r:$d { $permission};"
       fi
-      if [ -f sepolicy/vendor/$i.te ] && [ ! -z "$present_check" ] && [ "$present_check" != "$write" ]; then
+      if [ -f $path/$i.te ] && [ ! -z "$present_check" ] && [ "$present_check" != "$write" ]; then
         if [ ! -z "$(echo "$present_check" | grep '{')" ]; then
           new_permission=$(echo "$present_check" | cut -d"{" -f2 | cut -d"}" -f1 )
         else
@@ -75,12 +75,12 @@ for i in $scontext; do
         done
 	permission=$(sort temp.txt | uniq | tr '\n' ' ')
 	write="allow $i $r:$d { $permission};"
-	sed -i -e "s/${present_check}/${write}/g" sepolicy/vendor/$i.te
+	sed -i -e "s/${present_check}/${write}/g" $path/$i.te
 	echo "$write"
       else
-        check=$(grep "$write" sepolicy/vendor/$i.te)
+        check=$(grep "$write" $path/$i.te)
         if [ -z "$check" ]; then
-          echo "$write" >> sepolicy/vendor/$i.te
+          echo "$write" >> $path/$i.te
           echo "$write"
         else
         echo "skipping, $write already present."
@@ -95,13 +95,6 @@ error=0
 scon=""
 rcon=""
 
-if [ ! -d sepolicy ]; then
-mkdir sepolicy
-fi
-if [ ! -d sepolicy/vendor ]; then
-mkdir sepolicy/vendor
-fi
-
 echo "-"
 echo "Sepolicy Fixer v1"
 echo "by Kingsman44"
@@ -115,12 +108,14 @@ echo "Usage: "
 echo ". sepolicy.sh file1 file2 ... { options } "
 echo ""
 echo "Options"
-echo "--clean                    : Removes old sepolicy and start with clean"
+echo "-path={directory}          : to write sepolicy in custom path"
+echo "--clean                    : Removes old sepolicy and start with clean even custom path"
 echo "-s scontext1,scontext2..   : Only resolve denials for given scontexts"
 echo "-r scontext1,scontext2..   : Ignores denials for given scontexts"
 echo ""
+echo "Don't Use -s and -r at a time"
 echo "Use , for multiple scontexts in -r and -s"
-echo "Example: -s init,zygote"
+echo "Example: . sepolicy.sh denial.txt new/error.txt -path=mido/sepolicy/public -s init,zygote,system_app --clean"
 error=1
 fi
 
@@ -159,8 +154,31 @@ echo ""
 fi
 fi
 
+if [ ! -z "$(echo "$opt" | grep -e '-path')" ] && [ $error -eq 0 ]; then
+path="$(echo "$opt" | sed -n -e 's/^.*-path//p' | cut -d' ' -f1 | cut -d= -f2)"
+if [ "${path: -1}" == "/" ]; then
+path="${path::-1}"
+fi
+if [ -z "$path" ]; then
+echo "Error !!"
+echo "path is empty."
+error=1
+else
+echo "-Setting Custom path to $path"
+echo ""
+fi
+else
+path="sepolicy/vendor"
+fi
+
+if [ ! -d $path ] && [ $error -eq 0 ]; then
+mkdir -p $path
+echo "-Creating directory $path"
+echo ""
+fi
+
 if [ ! -z "$(echo "$opt" | grep -e '--clean')" ] && [ $error -eq 0 ]; then
-rm -rf sepolicy/vendor/*.te
+rm -rf $path/*.te
 echo "-Cleaning Previous Sepolicy Fixes"
 echo ""
 fi
