@@ -31,19 +31,20 @@ for i in $scontext; do
   tclass=$(grep $i $1 | sed -n -e 's/^.*tclass=//p' | cut -d" " -f1 | sort | uniq)
   for d in $tclass; do
     rm -rf temp.txt
-    tcontext=$(grep $i $1 | grep "$d" | sed -n -e 's/^.*tcontext=//p' | cut -d: -f3 | sort | uniq)
+    tcontext=$(grep $i $1 | grep "tclass=$d" | sed -n -e 's/^.*tcontext=//p' | cut -d: -f3 | sort | uniq)
     tcontext="${tcontext// /}"
-    de=$(grep $i $1 | grep "$tcontext" |grep "$d" | sed -n -e 's/^.*{ //p' | cut -d" " -f1 | sort | uniq)
-    for c in $de; do
-      echo $c >> temp.txt
-    done
-    permission=$(sort temp.txt | uniq | tr '\n' ' ')
-
-    if [ "${permission: -1}" != " " ]; then
-      permission="$permission "
-    fi
-
     for r in $tcontext; do
+      rm -rf temp.txt
+      de=$(grep $i $1 | grep "$r" |grep "$d" | sed -n -e 's/^.*{ //p' | cut -d" " -f1 | sort | uniq)
+      for c in $de; do
+        echo $c >> temp.txt
+      done
+      permission=$(sort temp.txt | uniq | tr '\n' ' ')
+
+      if [ "${permission: -1}" != " " ]; then
+        permission="$permission "
+      fi
+
       if [ ! -f sepolicy/vendor/$i.te ]; then
 	echo "#============= $i ==============" >> sepolicy/vendor/$i.te
       fi
