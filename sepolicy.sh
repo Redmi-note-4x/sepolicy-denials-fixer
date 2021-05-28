@@ -52,9 +52,9 @@ for i in $scontext; do
       present_check=$(grep "allow $i $r:$d" $path/$i.te)
       if [ ! -z "$(echo "$r" | grep prop)" ]; then
         if [ ! -z "$(echo "$permission" | grep read)" ]; then
-          write="get_prop($i, $r);"
+          write="get_prop($i, $r)"
 	elif [ ! -z "$(echo "$permission" | grep set)" ]; then
-          write="set_prop($i, $r);"
+          write="set_prop($i, $r)"
 	else
           write="allow $i $r:$d { $permission};"
 	fi
