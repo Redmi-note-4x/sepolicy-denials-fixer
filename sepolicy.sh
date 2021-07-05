@@ -58,6 +58,12 @@ sepolicy() {
                     else
                         write="allow $i $r:$d { $permission};"
                     fi
+                elif [ ! -z "$(echo "$d" | grep binder)" ]; then
+                    if [ ! -z "$(echo "$permission" | grep call)" ]; then
+                        write="binder_call($i, $r)"
+                    else
+                        write="allow $i $r:$d { $permission};"
+                    fi
                 elif [ $(echo ${#perm[@]}) -eq 1 ]; then
                     permission=${permission::-1}
                     write="allow $i $r:$d $permission;"
