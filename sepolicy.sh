@@ -114,7 +114,7 @@ if [ ! -z "$(echo "$opt" | grep -e '--help')" ]; then
     echo ". sepolicy.sh file1 file2 ... { options } "
     echo ""
     echo "Options"
-    echo "-path={directory}          : to write sepolicy in custom path"
+    echo "-path={directory}          : To write sepolicy in custom path"
     echo "--clean                    : Removes old sepolicy and start with clean even custom path"
     echo "-s scontext1,scontext2..   : Only resolve denials for given scontexts"
     echo "-r scontext1,scontext2..   : Ignores denials for given scontexts"
@@ -131,11 +131,11 @@ if [ ! -z "$(echo "$opt" | grep -e '-s')" ] && [ $error -eq 0 ]; then
     if [ -z "$scon" ] || [ "${scon:0:1}" == "-" ]; then
         echo "Error:"
         echo "-s option used but no scontext Defined."
-        echo "use --help for more information"
+        echo "Use --help for more information"
         error=1
     else
         echo "-s option used"
-        echo "only fixes for $scon will be generated."
+        echo "Only fixes for $scon will be generated."
         echo ""
     fi
 fi
